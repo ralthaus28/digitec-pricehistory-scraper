@@ -61,4 +61,4 @@ while True:
     # Check price drop
     check_price_drop(args.productId)
     # Wait for 1 hour before checking again
-    time.sleep(36)  # 3600 seconds = 1 hour
+    time.sleep(3600)  # 3600 seconds = 1 hour
