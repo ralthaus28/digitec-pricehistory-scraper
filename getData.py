@@ -3,11 +3,12 @@ import requests
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime
+from statistics import mean
 import json
 
 # Set up the argument parser
 parser = argparse.ArgumentParser(description='Fetch price history for a product.')
-parser.add_argument('productId', type=int, help='The ID of the product to fetch price history for.')
+parser.add_argument('productId', type=int, nargs='?', default=38955607, help='The ID of the product to fetch price history for.')
 
 # Parse the command-line arguments
 args = parser.parse_args()
@@ -119,3 +120,29 @@ plt.savefig(fr'C:\dev\Python\Digitec\{args.productId}.png')  # Make sure to use 
 
 # Show the plot
 plt.show()
+
+# Extract all data points
+all_data_points = data['data']['priceHistory']['points']
+
+# Filter out data points with valid prices
+valid_prices = [point['amountIncl'] for point in all_data_points if point['amountIncl'] is not None]
+
+# Calculate the average price if there are valid prices
+if valid_prices:
+    average_price = mean(valid_prices)
+
+    # Identify dates where the price was at least 30% lower than the average
+    dates_lower_than_average = []
+    for point in all_data_points:
+        if point['amountIncl'] is not None and point['amountIncl'] < 0.7 * average_price:
+            dates_lower_than_average.append(datetime.strptime(point['validFrom'], "%Y-%m-%dT%H:%M:%SZ"))
+
+    # Output dates when the price was at least 30% lower than the average
+    if dates_lower_than_average:
+        print("Dates when the price was at least 30% lower than the average:")
+        for date in dates_lower_than_average:
+            print(date.strftime("%Y-%m-%d"))
+    else:
+        print("No dates found where the price was at least 30% lower than the average.")
+else:
+    print("No valid prices available in the data.")
